@@ -60,6 +60,8 @@ export interface IDay {
   day: string;
   hour: string;
   minute: string;
+  dayShort: string;
+  monthShort: string;
 }
 
 export interface IDate {
@@ -104,7 +106,7 @@ let nextId = 0;
   encapsulation: ViewEncapsulation.None
 })
 export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueAccessor {
-
+  private _locale:DateLocale;
   private _overlayRef: OverlayRef;
   private _backdropSubscription: Subscription;
 
@@ -132,13 +134,22 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
   @Output() change: EventEmitter<Md2DateChange> = new EventEmitter<Md2DateChange>();
 
   constructor(private _element: ElementRef, private overlay: Overlay, private _renderer: Renderer,
-    private _dateUtil: Md2DateUtil, private _locale: DateLocale,
+    private _dateUtil: Md2DateUtil,
     @Self() @Optional() public _control: NgControl) {
+    this._locale = new DateLocale(_element.nativeElement.dataset.locale || 'en');
+
     if (this._control) {
       this._control.valueAccessor = this;
     }
 
-    this._weekDays = _locale.days;
+    this._weekDays = this._locale.activeLocale.days.map(
+        function(day, i) {
+          var newDayIndex = i + this._locale.activeLocale.firstDayOfWeek;
+          return this._locale.activeLocale.days[newDayIndex] ||
+              this._locale.activeLocale.days[newDayIndex - this._locale.activeLocale.days.length];
+        },
+        this
+    );
 
     this.getYears();
     this.generateClock();
@@ -304,7 +315,7 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
   _dates: Array<Object> = [];
   private today: Date = new Date();
   private _displayDate: Date = null;
-  _viewDay: IDay = { year: 0, month: '', date: '', day: '', hour: '', minute: '' };
+  _viewDay: IDay = { year: 0, month: '', date: '', day: '', hour: '', minute: '', dayShort: '', monthShort: '' };
   _viewValue: string = '';
 
   _clock: any = {
@@ -379,11 +390,13 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
       this._displayDate = date;
       this._viewDay = {
         year: date.getFullYear(),
-        month: this._locale.months[date.getMonth()].full,
+        month: this._locale.activeLocale.months[date.getMonth()].full,
         date: this._prependZero(date.getDate() + ''),
-        day: this._locale.days[date.getDay()].full,
+        day: this._locale.activeLocale.days[date.getDay()].full,
         hour: this._prependZero(date.getHours() + ''),
-        minute: this._prependZero(date.getMinutes() + '')
+        minute: this._prependZero(date.getMinutes() + ''),
+        dayShort: this._locale.activeLocale.days[date.getDay()].short,
+        monthShort: this._locale.activeLocale.months[date.getMonth()].short
       };
     }
   }
@@ -631,7 +644,6 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
     } else if (date.calMonth === this._nextMonth) {
       this._updateMonth(1);
     }
-    console.log('date clicked');
   }
 
   private updateDisplayDate(date: Date) {
@@ -728,8 +740,9 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
     for (let i = 1; i < 7; i++) {
       let week: IWeek[] = [];
       if (i === 1) {
-        let prevMonth = numberOfDaysInPrevMonth - firstDayOfMonth.getDay() + 1;
-        for (let j = prevMonth; j <= numberOfDaysInPrevMonth; j++) {
+        let prevMonth = numberOfDaysInPrevMonth - firstDayOfMonth.getDay() + this._locale.activeLocale.firstDayOfWeek + 1;
+        prevMonth = prevMonth <= numberOfDaysInPrevMonth + this._locale.activeLocale.firstDayOfWeek ? prevMonth : prevMonth - 7;
+        for (let j = prevMonth; j <= numberOfDaysInPrevMonth ; j++) {
           let iDate: IDate = { year: year, month: month - 1, day: j, hour: 0, minute: 0 };
           let date: Date = new Date(year, month - 1, j);
           week.push({
