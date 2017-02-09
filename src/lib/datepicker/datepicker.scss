@@ -248,11 +248,11 @@ md2-datepicker.md2-datepicker-disabled:focus {
   text-align: center;
   cursor: pointer;
 
-  &.selected {
+  /*&.selected {
     color: $primary;
     font-size: 26px;
     font-weight: 500;
-  }
+  }*/
 }
 
 .md2-calendar-month {
@@ -330,16 +330,20 @@ md2-datepicker.md2-datepicker-disabled:focus {
     color: $primary;
   }
 
-  &:hover,
-  &.focus {
+  &:hover{
     background: darken(white, 12);
   }
 
-  &.selected,
-  &.selected:hover {
+  &.focus {
     color: white;
     background: $primary;
   }
+
+  /*&.selected,
+  &.selected:hover {
+    color: white;
+    background: $primary;
+  }*/
 
   &.disabled,
   &.disabled:hover {

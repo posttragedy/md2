@@ -109,6 +109,7 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
   private _backdropSubscription: Subscription;
 
   private _date: Date = null;
+  private viewDate: Date;
   private _panelOpen = false;
   private _selected: Date = null;
   private _openOnFocus: boolean = false;
@@ -625,11 +626,16 @@ export class Md2Datepicker implements AfterContentInit, OnDestroy, ControlValueA
     if (date.calMonth === this._prevMonth) {
       this._updateMonth(-1);
     } else if (date.calMonth === this._currMonth) {
-      this.setDate(new Date(date.dateObj.year, date.dateObj.month,
+      this.updateDisplayDate(new Date(date.dateObj.year, date.dateObj.month,
         date.dateObj.day, this.displayDate.getHours(), this.displayDate.getMinutes()));
     } else if (date.calMonth === this._nextMonth) {
       this._updateMonth(1);
     }
+    console.log('date clicked');
+  }
+
+  private updateDisplayDate(date: Date) {
+    this.displayDate = date;
   }
 
   /**
